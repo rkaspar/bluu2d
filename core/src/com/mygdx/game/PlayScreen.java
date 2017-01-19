@@ -1,7 +1,5 @@
 package com.mygdx.game;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
-
 import box2dLight.RayHandler;
 
 import com.badlogic.gdx.Gdx;
@@ -14,16 +12,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.maps.tiled.renderers.OrthoCachedTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.mygdx.game.entities.Barrier;
 import com.mygdx.game.entities.Entity;
 import com.mygdx.game.entities.Player;
 import com.mygdx.game.tools.B2WorldCreator;
@@ -68,6 +62,8 @@ public class PlayScreen implements Screen {
 		rayHandler.setAmbientLight(new Color(.1f, .1f, .1f, .05f));
 
 		atlas = new TextureAtlas("bluupack.pack");
+		
+		//change
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 15,

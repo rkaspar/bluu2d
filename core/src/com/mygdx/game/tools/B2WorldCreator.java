@@ -84,7 +84,7 @@ public class B2WorldCreator implements Disposable {
 			body = screen.getWorld().createBody(bdef);
 			body.setActive(false);
 
-			//fdef.shape = shape;
+			// fdef.shape = shape;
 			fdef.density = 1;
 			fdef.filter.categoryBits = Constants.LIGHT_BITS;
 			fdef.filter.maskBits = Constants.PLAYER_BITS
