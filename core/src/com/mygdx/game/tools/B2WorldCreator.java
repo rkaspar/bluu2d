@@ -40,84 +40,69 @@ public class B2WorldCreator implements Disposable {
 		// create ground bodies/fixtures
 		for (MapObject object : map.getLayers().get("collision").getObjects()) {
 			Shape shape;
-			if (object instanceof PolylineMapObject) {
-				bdef = new BodyDef();
-				shape = createPolyline(((PolylineMapObject) object));
 
-				bdef.type = BodyDef.BodyType.StaticBody;
+			bdef = new BodyDef();
+			shape = createShapeFromObject(object);
 
-				body = world.createBody(bdef);
-				fdef.shape = shape;
-				fdef.density = 1;
-				// fdef.filter.categoryBits = Constants.BOUNDARY_BITS;
+			bdef.type = BodyDef.BodyType.StaticBody;
 
-				body.createFixture(fdef);
-
-				shape.dispose();
-
-			} else {
-				continue;
-			}
+			body = world.createBody(bdef);
+			fdef.shape = shape;
+			fdef.density = 1;
+			fdef.filter.categoryBits = Constants.BOUNDARY_BITS;
+			fdef.filter.maskBits = Constants.PLAYER_BITS | Constants.LIGHT_BITS;
+			body.createFixture(fdef);
+			shape.dispose();
 
 		}
 
-		for (MapObject object : map.getLayers().get("collision").getObjects()) {
+		for (MapObject object : map.getLayers().get("events").getObjects()) {
 			Shape shape;
-			if (object instanceof PolygonMapObject) {
 
-				shape = createPolygon(((PolygonMapObject) object));
+			shape = createShapeFromObject(object);
+			fdef.shape = shape;
+			bdef.type = BodyDef.BodyType.StaticBody;
+			body = world.createBody(bdef);
+			fdef.isSensor = true;
+			fdef.density = 0;
+			fdef.filter.categoryBits = Constants.WIN_BITS;
+			fdef.filter.maskBits = Constants.PLAYER_BITS;
+			body.createFixture(fdef);
+			shape.dispose();
 
-				bdef.type = BodyDef.BodyType.StaticBody;
-				body = world.createBody(bdef);
-
-				fdef.shape = shape;
-				fdef.density = 1;
-				fdef.filter.categoryBits = Constants.BOUNDARY_BITS;
-				fdef.filter.maskBits = Constants.PLAYER_BITS
-						| Constants.LIGHT_BITS;
-				body.createFixture(fdef);
-
-				shape.dispose();
-
-			} else {
-				continue;
-			}
 		}
 
 		for (MapObject object : map.getLayers().get("lights").getObjects()) {
 			Shape shape;
-			if (object instanceof PolygonMapObject) {
 
-				shape = createPolygon(((PolygonMapObject) object));
+			shape = createShapeFromObject(object);
 
-				bdef.type = BodyDef.BodyType.StaticBody;
-				bdef.position.set(((PolygonMapObject) object).getPolygon()
-						.getX() / screen.WORLD_SCALE,
-						((PolygonMapObject) object).getPolygon().getY()
-								/ screen.WORLD_SCALE);
-				body = screen.getWorld().createBody(bdef);
+			bdef.type = BodyDef.BodyType.StaticBody;
+			bdef.position.set(((PolygonMapObject) object).getPolygon().getX()
+					/ screen.WORLD_SCALE, ((PolygonMapObject) object)
+					.getPolygon().getY() / screen.WORLD_SCALE);
+			body = screen.getWorld().createBody(bdef);
+			body.setActive(false);
 
-				fdef.shape = shape;
-				fdef.density = 1;
-				fdef.filter.categoryBits = Constants.LIGHT_BITS;
-				fdef.filter.maskBits = Constants.PLAYER_BITS
-						| Constants.BOUNDARY_BITS;
-				// body.createFixture(fdef);
+			//fdef.shape = shape;
+			fdef.density = 1;
+			fdef.filter.categoryBits = Constants.LIGHT_BITS;
+			fdef.filter.maskBits = Constants.PLAYER_BITS
+					| Constants.BOUNDARY_BITS | Constants.WIN_BITS
+					| Constants.ITEM_BITS;
+			// body.createFixture(fdef);
 
-				ConeLight light = new ConeLight(screen.getRayHandler(), 125,
-						new Color(1, 1, 1, .6f), 500f / screen.WORLD_SCALE,
-						body.getPosition().x, body.getPosition().y, -90, 15);
+			ConeLight light = new ConeLight(screen.getRayHandler(), 125,
+					new Color(1, 1, 1, .6f), 500f / screen.WORLD_SCALE,
+					body.getPosition().x, body.getPosition().y, -90, 15);
 
-				light.setContactFilter(fdef.filter);
-				light.setSoft(true);
+			light.setContactFilter(fdef.filter);
+			light.setSoft(true);
 
-			} else {
-				continue;
-			}
 		}
 
 		// create pipe bodies/fixtures
-		for (MapObject object : map.getLayers().get(4).getObjects()
+		for (MapObject object : map.getLayers().get("spawn").getObjects()
 				.getByType(RectangleMapObject.class)) {
 			Rectangle rect = ((RectangleMapObject) object).getRectangle();
 			System.out.println(rect.x + ", " + rect.y);
@@ -127,23 +112,21 @@ public class B2WorldCreator implements Disposable {
 
 	}
 
-	private static ChainShape createPolyline(PolylineMapObject polyline) {
-		float[] vertices = polyline.getPolyline().getTransformedVertices();
-		Vector2[] worldVertices = new Vector2[vertices.length / 2];
-
-		for (int i = 0; i < worldVertices.length; i++) {
-			worldVertices[i] = new Vector2(vertices[i * 2] / Constants.PPM,
-					vertices[i * 2 + 1] / Constants.PPM);
+	private static ChainShape createShapeFromObject(MapObject object) {
+		MapObject polyline;
+		float[] vertices;
+		if (object instanceof PolygonMapObject) {
+			polyline = ((PolygonMapObject) object);
+			vertices = ((PolygonMapObject) polyline).getPolygon()
+					.getTransformedVertices();
+		} else if (object instanceof PolylineMapObject) {
+			polyline = ((PolylineMapObject) object);
+			vertices = ((PolylineMapObject) polyline).getPolyline()
+					.getTransformedVertices();
+		} else {
+			vertices = null;
 		}
 
-		ChainShape cs = new ChainShape();
-		cs.createChain(worldVertices);
-
-		return cs;
-	}
-
-	private static ChainShape createPolygon(PolygonMapObject polyline) {
-		float[] vertices = polyline.getPolygon().getTransformedVertices();
 		Vector2[] worldVertices = new Vector2[vertices.length / 2];
 
 		for (int i = 0; i < worldVertices.length; i++) {

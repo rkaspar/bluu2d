@@ -23,12 +23,13 @@ public class Player extends Entity {
 	public State currentState;
 	public State previousState;
 
-	public float PLAYER_SPEED = .5f;
+	public float PLAYER_SPEED = .2f;
 
 	PointLight pLight;
 	Animation breathAnimation, deathAnimation;
 	private float stateTimer;
 	public boolean gone;
+	private float MAX_LIGHT_DISTANCE = 500 / screen.WORLD_SCALE;
 
 	public Player(PlayScreen screen, float x, float y) {
 		super(screen, x, y);
@@ -72,20 +73,20 @@ public class Player extends Entity {
 
 		FixtureDef f = new FixtureDef();
 		CircleShape circle = new CircleShape();
-		circle.setRadius(4 / PlayScreen.WORLD_SCALE);
+		circle.setRadius(3.5f / PlayScreen.WORLD_SCALE);
 
 		f.filter.categoryBits = Constants.PLAYER_BITS;
 		f.filter.maskBits = Constants.BOUNDARY_BITS | Constants.ENEMY_BITS
 				| Constants.BULLET_BITS | Constants.ITEM_BITS
-				| Constants.LIGHT_BITS;
+				| Constants.LIGHT_BITS | Constants.WIN_BITS;
 
 		f.shape = circle;
 		bod.createFixture(f).setUserData(this);
 
 		circle.dispose();
 
-		pLight = new PointLight(screen.getRayHandler(), 500, new Color(1, 1, 1,
-				.5f), 500f / screen.WORLD_SCALE, 0f, 0f);
+		pLight = new PointLight(screen.getRayHandler(), 125, new Color(1, 1, 1,
+				.5f), MAX_LIGHT_DISTANCE, 0f, 0f);
 
 		pLight.attachToBody(bod);
 
@@ -114,8 +115,10 @@ public class Player extends Entity {
 			this.setPosition(bod.getPosition().x - getWidth() / 2,
 					bod.getPosition().y - getHeight() / 2);
 
-			// pulse light
-
+			// shrink light
+			double distance = pLight.getDistance()
+					- (pLight.getDistance() * .005);
+			pLight.setDistance((float) distance);
 		}
 
 		this.setRegion(getFrame(dt));
@@ -138,7 +141,8 @@ public class Player extends Entity {
 
 	@Override
 	public void gainHealth(float health) {
-		// TODO Auto-generated method stub
+
+		pLight.setDistance(MAX_LIGHT_DISTANCE);
 
 	}
 

@@ -31,6 +31,18 @@ public class ContactHandler implements ContactListener {
 			} else {
 				((Player) fixB.getUserData()).setToDestroy(true);
 			}
+			break;
+		case Constants.WIN_BITS | Constants.PLAYER_BITS: // if collision
+			// between
+			// player and
+			// wall.
+			System.out.println("WINNER");
+
+			if (fixA.getUserData() instanceof Player) {
+				((Player) fixA.getUserData()).gainHealth(100f);
+			} else {
+				((Player) fixB.getUserData()).gainHealth(100f);
+			}
 
 			break;
 		default:

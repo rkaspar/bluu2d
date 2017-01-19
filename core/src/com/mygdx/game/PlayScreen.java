@@ -31,6 +31,7 @@ import com.mygdx.game.tools.Constants;
 
 public class PlayScreen implements Screen {
 
+	private static final float PARALLAX_SPEED = 10f;
 	World world;
 	SpriteBatch batch;
 	OrthographicCamera camera;
@@ -42,6 +43,9 @@ public class PlayScreen implements Screen {
 	private Hud hud;
 	TextureAtlas atlas;
 
+	int[] parallax_mid = { 1, 2 };
+	int[] parallax_back = { 0 };
+	int[] parallax_ground = { 3 };
 	// map loader
 	private OrthogonalTiledMapRenderer tileRenderer;
 	private TiledMap map;
@@ -50,6 +54,7 @@ public class PlayScreen implements Screen {
 	private Player player;
 	private B2WorldCreator b2worldcreator;
 	private Vector2 lastSpawn;
+	private boolean debug;
 
 	public static float WORLD_SCALE = Constants.PPM;
 
@@ -60,11 +65,14 @@ public class PlayScreen implements Screen {
 		world = new World(new Vector2(0f, Constants.GRAVITY), true);
 		b2dr = new Box2DDebugRenderer();
 		rayHandler = new RayHandler(world);
-		rayHandler.setAmbientLight(new Color(.1f, .1f, .1f, .2f));
+		rayHandler.setAmbientLight(new Color(.1f, .1f, .1f, .05f));
 
 		atlas = new TextureAtlas("bluupack.pack");
 
-		camera = new OrthographicCamera(320 / WORLD_SCALE, 160 / WORLD_SCALE);
+		camera = new OrthographicCamera();
+		camera.setToOrtho(false, 15,
+				15 / (Constants.V_WIDTH / Constants.V_HEIGHT));
+
 		hud = new Hud(batch);
 
 		this.world.setContactListener(new ContactHandler());
@@ -76,16 +84,7 @@ public class PlayScreen implements Screen {
 		tileRenderer = new OrthogonalTiledMapRenderer(map, 1 / WORLD_SCALE);
 
 		b2worldcreator = new B2WorldCreator(this);
-
-		// create barriers
-		// for (int i = 0; i < 8; i++) {
-		// Entities.add(new Barrier(this, MathUtils.random(-100, 100)
-		// / WORLD_SCALE, MathUtils.random(-100, 100) / WORLD_SCALE));
-		// }
-
-		// add player to entities
-		// Entities.add(getPlayer());
-
+		camera.position.set(getPlayer().getPosition().scl(1 / WORLD_SCALE), 0);
 	}
 
 	public TextureAtlas getAtlas() {
@@ -106,12 +105,19 @@ public class PlayScreen implements Screen {
 		// update game logic
 		update(dt);
 
-		tileRenderer.render();
+		// render tiles in parallax by layer.
+		tileRenderer.setView(camera);
+		tileRenderer.render(parallax_back);
+		tileRenderer.render(parallax_mid);
+
+		tileRenderer.render(parallax_ground);
 
 		rayHandler.setCombinedMatrix(camera);
 		rayHandler.updateAndRender();
 
-		// b2dr.render(world, camera.combined);
+		if (debug) {
+			b2dr.render(world, camera.combined);
+		}
 		batch.setProjectionMatrix(camera.combined);
 
 		// draw sprites
@@ -148,7 +154,7 @@ public class PlayScreen implements Screen {
 
 		if (Gdx.input.isKeyPressed(Keys.Q)) {
 
-			if (!(camera.zoom > 1f)) {
+			if (!(camera.zoom > 10f)) {
 				camera.zoom += 0.02f;
 			}
 
@@ -183,6 +189,9 @@ public class PlayScreen implements Screen {
 					getPlayer().bod.getLocalCenter().x,
 					getPlayer().bod.getLocalCenter().y, true);
 		}
+		if (Gdx.input.isKeyJustPressed(Keys.R)) {
+			debug = !debug;
+		}
 
 		float lerp = 0.8f;
 		Vector3 position = this.camera.position;
@@ -197,7 +206,6 @@ public class PlayScreen implements Screen {
 			camera.position.set(position);
 		}
 		hud.update(dt);
-		tileRenderer.setView(camera);
 
 	}
 
