@@ -63,8 +63,7 @@ public class PlayScreen implements Screen {
 
 		atlas = new TextureAtlas("bluupack.pack");
 		
-		//change
-
+		//change 2
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 15,
 				15 / (Constants.V_WIDTH / Constants.V_HEIGHT));
